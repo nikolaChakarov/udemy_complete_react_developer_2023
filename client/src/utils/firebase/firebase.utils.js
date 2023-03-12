@@ -5,6 +5,7 @@ import {
 	signInWithRedirect,
 	signInWithPopup,
 	GoogleAuthProvider,
+	createUserWithEmailAndPassword,
 } from 'firebase/auth';
 
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
@@ -20,18 +21,27 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const firebaseApp = initializeApp(firebaseConfig);
+initializeApp(firebaseConfig);
 
-const provider = new GoogleAuthProvider();
-provider.setCustomParameters({
+const googleProvider = new GoogleAuthProvider();
+
+googleProvider.setCustomParameters({
 	prompt: 'select_account',
 });
 
 export const auth = getAuth();
-export const signInWithGooglePopup = () => signInWithPopup(auth, provider);
+
+export const signInWithGooglePopup = () =>
+	signInWithPopup(auth, googleProvider);
+
+export const signInWithGoogleRedirect = () =>
+	signInWithRedirect(auth, googleProvider);
 
 export const db = getFirestore();
+
 export const createUserDocumentFromAuth = async (userAuth) => {
+	if (!userAuth) return;
+
 	console.log('userAuth::: ', userAuth);
 	// we get this current user from collection USERS, even if this collection does not exist yet. this is how GOOGLE works. it give us an ID
 	const userDocRef = doc(db, 'users', userAuth.uid);
@@ -55,4 +65,14 @@ export const createUserDocumentFromAuth = async (userAuth) => {
 
 	// if user data exists
 	return userDocRef;
+};
+
+export const createAuthUserWithEmailAndPassword = async (email, password) => {
+	if (!email || !password) return;
+
+	try {
+		return await createUserWithEmailAndPassword(auth, email, password);
+	} catch (error) {
+		console.error(error);
+	}
 };
